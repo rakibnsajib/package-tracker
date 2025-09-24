@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login • Package Tracker</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="icon" href="/fav.ico" type="image/x-icon" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <a class="brand" href="/">
+          <img src="/logo.svg" alt="Package Tracker" />
+        </a>
+      </header>
+      <main class="signup-main">
+        <div class="signup-card">
+          <h2>Welcome back</h2>
+          <p class="sub">Sign in to continue tracking your parcels.</p>
+          <form id="loginPageForm">
+            <label>Username or Email
+              <input type="text" id="lpUser" autocomplete="username" required />
+            </label>
+            <label>Password
+              <div class="input-wrap">
+                <input type="password" id="lpPass" autocomplete="current-password" required />
+                <button type="button" id="lpEye" class="eye-btn" aria-label="Show password">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+            </label>
+            <div class="form-footer">
+              <button type="submit" class="btn cta-signup">Login</button>
+              <a class="muted-link" href="/signup.html">New here? Sign up</a>
+            </div>
+          </form>
+        </div>
+      </main>
+    </div>
+    <script>
+      const form = document.getElementById('loginPageForm');
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const username = document.getElementById('lpUser').value.trim();
+        const password = document.getElementById('lpPass').value;
+        const res = await fetch('/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) });
+        const data = await res.json();
+        if (!res.ok) { alert(data.error || 'Login failed'); return; }
+        if (data.token) localStorage.setItem('token', data.token);
+        window.location.href = '/';
+      });
+
+      const lpEye = document.getElementById('lpEye');
+      lpEye.addEventListener('click', () => {
+        const inp = document.getElementById('lpPass');
+        const show = inp.type === 'password';
+        inp.type = show ? 'text' : 'password';
+        lpEye.innerHTML = show
+          ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a21.77 21.77 0 0 1 5.06-6.94"/><path d="M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a21.77 21.77 0 0 1-5.06 6.94"/><path d="M1 1l22 22"/><path d="M14.12 14.12A3 3 0 1 1 9.88 9.88"/></svg>'
+          : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>';
+        lpEye.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+      });
+    </script>
+  </body>
+  </html>

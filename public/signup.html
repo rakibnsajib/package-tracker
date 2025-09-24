@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign Up • Package Tracker</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="icon" href="/fav.ico" type="image/x-icon" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <a class="brand" href="/">
+          <img src="/logo.svg" alt="Package Tracker" />
+        </a>
+      </header>
+      <main class="signup-main">
+        <div class="signup-card">
+          <h2>Create your account</h2>
+          <p class="sub">Set up your profile to start tracking parcels faster.</p>
+          <form id="signupForm" enctype="multipart/form-data">
+            <div class="avatar-uploader">
+              <input id="avatar" name="avatar" type="file" accept="image/*" hidden />
+              <button type="button" id="avatarBtn" class="avatar-circle" aria-label="Upload avatar">
+                <img id="avatarPreview" src="/default-avatar.svg" alt="Avatar preview" />
+                <span class="avatar-overlay">Upload</span>
+              </button>
+            </div>
+            <div class="grid two">
+              <label>First name
+                <input type="text" name="firstName" autocomplete="given-name" />
+              </label>
+              <label>Last name
+                <input type="text" name="lastName" autocomplete="family-name" />
+              </label>
+            </div>
+            <div class="grid two">
+              <label>Username
+                <input type="text" name="username" required autocomplete="username" />
+              </label>
+              <label>Email
+                <input id="suEmail" name="email" type="email" required autocomplete="email" />
+              </label>
+            </div>
+            <label>Password
+              <div class="input-wrap">
+                <input id="suPass" name="password" type="password" required autocomplete="new-password" />
+                <button type="button" id="suEye" class="eye-btn" aria-label="Show password">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+              <div id="strength" class="strength"><span></span></div>
+              <ul id="passChecks" class="checks">
+                <li data-check="len">At least 8 characters</li>
+                <li data-check="letters">Contains letters (A–Z or a–z)</li>
+                <li data-check="numbers">Contains numbers (0–9)</li>
+                <li data-check="symbols">Contains symbols (!@#$…)</li>
+              </ul>
+            </label>
+            <div class="form-footer">
+              <button type="submit" class="btn cta-signup">Sign Up</button>
+              <a class="muted-link" href="/login.html">Already a member? Login</a>
+            </div>
+          </form>
+        </div>
+      </main>
+    </div>
+    <script>
+      const pass = document.getElementById('suPass');
+      const bar = document.getElementById('strength').firstElementChild;
+      const form = document.getElementById('signupForm');
+      const avatarInput = document.getElementById('avatar');
+      const avatarBtn = document.getElementById('avatarBtn');
+      const avatarPreview = document.getElementById('avatarPreview');
+
+      function scorePassword(p) {
+        let s = 0;
+        if (!p) return 0;
+        s += Math.min(6, Math.floor(p.length / 2));
+        if (/[A-Z]/.test(p)) s += 2;
+        if (/[a-z]/.test(p)) s += 2;
+        if (/[0-9]/.test(p)) s += 2;
+        if (/[^A-Za-z0-9]/.test(p)) s += 3;
+        return Math.min(s, 15);
+      }
+      function updateStrength() {
+        const s = scorePassword(pass.value);
+        const pct = Math.round((s / 15) * 100);
+        bar.style.width = pct + '%';
+        bar.style.background = pct > 66 ? '#10b981' : pct > 33 ? '#f59e0b' : '#ef4444';
+        const allOk = updateChecks();
+        if (allOk) { bar.style.width = '100%'; bar.style.background = '#10b981'; }
+      }
+      pass.addEventListener('input', updateStrength);
+      updateStrength();
+
+      function openFilePicker(){ avatarInput.click(); }
+      if (avatarBtn) avatarBtn.addEventListener('click', openFilePicker);
+      if (avatarInput) avatarInput.addEventListener('change', () => {
+        const f = avatarInput.files && avatarInput.files[0];
+        if (!f) return;
+        const url = URL.createObjectURL(f);
+        avatarPreview.src = url;
+      });
+
+      function validateEmail(){
+        const em = document.getElementById('suEmail');
+        const v = (em.value || '').trim();
+        if (!v.includes('@')) {
+          em.setCustomValidity('Please include "@" in the email address.');
+          return false;
+        }
+        em.setCustomValidity('');
+        return true;
+      }
+
+      document.getElementById('suEmail').addEventListener('input', validateEmail);
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!validateEmail()) { form.reportValidity(); return; }
+        const fd = new FormData(form);
+        const res = await fetch('/auth/signup', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (!res.ok) {
+          alert(data.error || 'Signup failed');
+          return;
+        }
+        if (data.token) {
+          localStorage.setItem('token', data.token);
+        }
+        window.location.href = '/';
+      });
+
+      const suEye = document.getElementById('suEye');
+      suEye.addEventListener('click', () => {
+        const show = pass.type === 'password';
+        pass.type = show ? 'text' : 'password';
+        suEye.innerHTML = show
+          ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a21.77 21.77 0 0 1 5.06-6.94"/><path d="M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a21.77 21.77 0 0 1-5.06 6.94"/><path d="M1 1l22 22"/><path d="M14.12 14.12A3 3 0 1 1 9.88 9.88"/></svg>'
+          : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>';
+        suEye.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+      });
+
+      function updateChecks(){
+        const v = pass.value || '';
+        const hasLen = v.length >= 8;
+        const hasLetters = /[A-Za-z]/.test(v);
+        const hasNums = /\d/.test(v);
+        const hasSyms = /[^A-Za-z0-9]/.test(v);
+        const checks = document.getElementById('passChecks').querySelectorAll('li');
+        checks.forEach(li => {
+          const k = li.dataset.check;
+          const ok = (k==='len'&&hasLen)||(k==='letters'&&hasLetters)||(k==='numbers'&&hasNums)||(k==='symbols'&&hasSyms);
+          li.classList.toggle('ok', ok);
+        });
+        return hasLen && hasLetters && hasNums && hasSyms;
+      }
+    </script>
+  </body>
+  </html>

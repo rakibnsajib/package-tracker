@@ -1,0 +1,148 @@
+openapi: 3.0.3
+info:
+  title: Package Tracker API
+  version: 1.0.0
+  description: REST API for tracking packages with mock OAuth auth.
+servers:
+  - url: http://localhost:3000
+paths:
+  /auth/login:
+    post:
+      summary: Simulated OAuth login
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                provider:
+                  type: string
+                  example: mock
+                code:
+                  type: string
+                  example: mock
+                name:
+                  type: string
+                  example: demo-user
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  user:
+                    type: object
+                    properties:
+                      id: { type: string }
+                      name: { type: string }
+  /api/track/{trackingNumber}:
+    get:
+      summary: Get package by tracking number
+      parameters:
+        - in: path
+          name: trackingNumber
+          required: true
+          schema:
+            type: string
+            pattern: '^[A-Z0-9]{8,20}$'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Package'
+        '404':
+          description: Not Found
+    put:
+      summary: Update a package
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: trackingNumber
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                carrier: { type: string }
+                status: { type: string }
+                lastLocationLat: { type: number }
+                lastLocationLng: { type: number }
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Package'
+        '401': { description: Unauthorized }
+        '404': { description: Not Found }
+    delete:
+      summary: Delete a package
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: trackingNumber
+          required: true
+          schema:
+            type: string
+      responses:
+        '200': { description: Deleted }
+        '401': { description: Unauthorized }
+        '404': { description: Not Found }
+  /api/track:
+    post:
+      summary: Create a package
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [trackingNumber]
+              properties:
+                trackingNumber: { type: string }
+                carrier: { type: string }
+                status: { type: string }
+                lastLocationLat: { type: number }
+                lastLocationLng: { type: number }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Package'
+        '401': { description: Unauthorized }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Package:
+      type: object
+      properties:
+        trackingNumber: { type: string }
+        carrier: { type: string }
+        status: { type: string }
+        lastLocationLat: { type: number, nullable: true }
+        lastLocationLng: { type: number, nullable: true }
+        lastUpdated: { type: string }
+

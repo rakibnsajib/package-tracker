@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Package Tracker Chat</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="icon" href="/fav.ico" type="image/x-icon" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div class="app">
+      <!-- Home/Landing Page -->
+      <section id="homePage" class="home">
+        <header class="topbar">
+          <a class="brand" href="/">
+            <img src="/logo.svg" alt="Package Tracker" />
+          </a>
+          <div class="auth-actions" id="homeAuthActions">
+            <button id="homeLoginBtn" class="btn ghost">Login</button>
+            <button id="homeSignupBtn" class="btn solid">Sign Up</button>
+          </div>
+        </header>
+
+        <div class="hero">
+          <div class="hero-copy">
+            <h1>Delivering on time, across Bangladesh</h1>
+            <p>Easy tracking with a clean chat experience. Secure, fast, and reliable updates from carriers like Sundarban, SteadFast, RedX, Pathao Courier, and SA Paribahan.</p>
+            <button id="startTrackingBtn" class="cta" aria-label="Track your package">
+              <svg class="icon-target" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2" opacity="0.25"/>
+                <circle cx="12" cy="12" r="5" fill="none" stroke="currentColor" stroke-width="2"/>
+                <circle cx="12" cy="12" r="2.5" fill="currentColor"/>
+                <line x1="12" y1="3" x2="12" y2="6" stroke="currentColor" stroke-width="2"/>
+                <line x1="12" y1="21" x2="12" y2="18" stroke="currentColor" stroke-width="2"/>
+                <line x1="3" y1="12" x2="6" y2="12" stroke="currentColor" stroke-width="2"/>
+                <line x1="21" y1="12" x2="18" y2="12" stroke="currentColor" stroke-width="2"/>
+              </svg>
+              <span class="label">Track Your Package</span>
+            </button>
+          </div>
+          <div class="hero-art">
+            <img id="heroArt" src="/rider.svg" alt="Delivery rider illustration" />
+          </div>
+        </div>
+      </section>
+
+      <!-- Chat Page -->
+      <section id="chatPage" class="chatpage" style="display:none;">
+        <header>
+          <a class="brand" href="/">
+            <img src="/logo.svg" alt="Package Tracker" />
+          </a>
+          <div class="auth-actions" id="chatAuthActions">
+            <button id="chatLoginBtn" class="btn ghost">Login</button>
+            <button id="chatSignupBtn" class="btn solid">Sign Up</button>
+          </div>
+        </header>
+        <main>
+          <div class="chat-card">
+            <div class="chat-layout">
+              <aside id="sidebar" class="sidebar" style="display:none;">
+                <div class="panel">
+                  <h4>Your packages</h4>
+                  <ul id="pkgList" class="list"></ul>
+                  <div id="pkgEmpty" class="empty">you have no package.</div>
+                </div>
+                <div class="panel">
+                  <div class="panel-head">
+                    <h4>Tracking history</h4>
+                    <div class="panel-actions">
+                      <button id="historyNew" class="icon-btn" title="New chat">+</button>
+                      <button id="historyClear" class="icon-btn" title="Clear all">🗑</button>
+                    </div>
+                  </div>
+                  <ul id="historyList" class="list"></ul>
+                  <div id="historyEmpty" class="empty">No tracking history.</div>
+                </div>
+              </aside>
+              <section class="chat-main">
+                <div id="chat" class="chat"></div>
+                <div id="map" class="map">
+                  <button id="mapCloseBtn" class="map-close" aria-label="Close map">×</button>
+                </div>
+                <div class="input-row">
+                  <input id="msg" placeholder="Type a tracking number, or try: track PKG12345678" />
+                  <button id="send">Send</button>
+                </div>
+              </section>
+            </div>
+          </div>
+        </main>
+      </section>
+
+      <!-- Fullscreen Map Modal -->
+      <div id="mapModal" class="modal" style="display:none;">
+        <div class="modal-backdrop" data-close="1"></div>
+        <div class="modal-card" style="max-width: 900px; width: 90vw; height: 70vh; display:flex; flex-direction: column;">
+          <h3 style="margin-bottom:8px;">Location</h3>
+          <div id="modalMap" style="flex:1; min-height: 0; border-radius:10px; overflow:hidden;"></div>
+          <div class="modal-actions"><button id="mapClose" class="btn solid">Close</button></div>
+        </div>
+      </div>
+
+      <!-- Login Modal -->
+      <div id="loginModal" class="modal" style="display:none;">
+        <div class="modal-backdrop" data-close="1"></div>
+        <div class="modal-card">
+          <h3>Login</h3>
+          <form id="loginForm">
+            <label>Username or Email
+              <input id="loginUser" name="username" autocomplete="username" required />
+            </label>
+            <label>Password
+              <div class="input-wrap">
+                <input id="loginPass" name="password" type="password" autocomplete="current-password" required />
+                <button type="button" id="loginEye" class="eye-btn" aria-label="Show password">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+            </label>
+            <div class="modal-actions">
+              <button type="button" id="loginCancel" class="btn ghost">Cancel</button>
+              <button type="submit" class="btn solid">Login</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Confirm Modal -->
+      <div id="confirmModal" class="modal" style="display:none;">
+        <div class="modal-backdrop" data-close="1"></div>
+        <div class="modal-card">
+          <h3 id="confirmTitle">Confirm</h3>
+          <p id="confirmText" style="color:#94a3b8; margin:6px 0 12px;">Are you sure?</p>
+          <div class="modal-actions">
+            <button id="confirmCancel" class="btn ghost">Cancel</button>
+            <button id="confirmOk" class="btn danger">Delete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="app.js"></script>
+  </body>
+  </html>
